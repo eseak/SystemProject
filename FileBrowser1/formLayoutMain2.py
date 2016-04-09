@@ -1,11 +1,7 @@
 #-*- coding: utf-8 -*-
 __author__ = 'Ese'
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow
-
 from PyQt5.QtWidgets import *
-
-
 from formLayout2 import Ui_MainWindow
 
 app = QApplication(sys.argv)
