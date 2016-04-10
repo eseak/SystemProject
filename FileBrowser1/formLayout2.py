@@ -75,11 +75,20 @@ class Ui_MainWindow(object):
         MainWindow.setMenuBar(self.menubar)
         self.actionSe_ili_Dosyalar_S_k_t_r = QtWidgets.QAction(MainWindow)
         self.actionSe_ili_Dosyalar_S_k_t_r.setObjectName("actionSe_ili_Dosyalar_S_k_t_r")
+
+        self.actionSeciliDosyalariCikar= QtWidgets.QAction(MainWindow)
+        self.actionSeciliDosyalariCikar.setObjectName("actionSeciliDosyalariCikar")
         self.actionSe_ili_Dosyalar_S_k_t_r_ve_ifrele = QtWidgets.QAction(MainWindow)
         self.actionSe_ili_Dosyalar_S_k_t_r_ve_ifrele.setObjectName("actionSe_ili_Dosyalar_S_k_t_r_ve_ifrele")
+
+
         self.menuDosya.addAction(self.actionSe_ili_Dosyalar_S_k_t_r)
+        self.menuDosya.addAction(self.actionSeciliDosyalariCikar)
         self.menuDosya.addAction(self.actionSe_ili_Dosyalar_S_k_t_r_ve_ifrele)
+
+
         self.actionSe_ili_Dosyalar_S_k_t_r.triggered.connect(self.onZipMenuSelected)
+        self.actionSeciliDosyalariCikar.triggered.connect(self.onUnzipMenuSelected)
         self.menubar.addAction(self.menuDosya.menuAction())
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -94,6 +103,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.menuDosya.setTitle(_translate("MainWindow", "Dosya"))
         self.actionSe_ili_Dosyalar_S_k_t_r.setText(_translate("MainWindow", "Seçili Dosyaları Sıkıştır"))
+        self.actionSeciliDosyalariCikar.setText(_translate("MainWindow", "Seçili Dosyaları Çıkar"))
         self.actionSe_ili_Dosyalar_S_k_t_r_ve_ifrele.setText(_translate("MainWindow", "Seçili Dosyaları Sıkıştır ve Şifrele"))
     #Bilgisayardaki disk adlarını(mouth) bir listede tutar
     def setDiskList(self):
@@ -120,6 +130,7 @@ class Ui_MainWindow(object):
     #Diske tıklandığında çalışan metod
     def diskFileList(self):
         self.treeWidget.clear()    #Sol taraftaki dizin ağacını temizle
+        self.listWidget2.clear()
         self.selectedDiskName=self.listWidget.currentItem().text()        #DiskLste kurtusunda seçilmiş disk aının değerin,i al
         self.activeWayFolderList.clear()#Aktif dizin silsilesini temizle
         self.activeWayFolderList.append(self.selectedDiskName)        #Seçilen dis adını yol dizinler listesine ekle
@@ -128,6 +139,7 @@ class Ui_MainWindow(object):
 
     #Sol taraftak klasör ağacını dolduran metod: Diske tıklandığında veya Klasör ağcandan double click(hazır değil) yapıldığında çalışır
     def fillFolderTreeWidget(self):
+        self.listWidget2.clear()
         self.createActiveWay()       #Önce son tıklamaya göre aktif dizini güncelleyelim
         print('İçeriği Listelenecek aktif yol:',self.activeWay)
         header=QtWidgets.QTreeWidgetItem(["Klasörler"])
@@ -146,6 +158,7 @@ class Ui_MainWindow(object):
 
     #Klasör ağacından itemChanged olayı yapılınca
     def fillFileList(self):
+        self.listWidget2.clear()
         print('Klasör ağacından bir seçim yapıldı')
         ai=self.treeWidget.currentItem()#seçili item
         self.activeFolderContent=os.listdir(self.activeWay)#Aktif dizindeki dosyaları listele
@@ -203,6 +216,7 @@ class Ui_MainWindow(object):
         #print(type(seciliItems))
         if(len(ListWidget2SelectedItems)>0):
             print('Seçili bir şeyler var...')
+            self.ListWidget2SelectedFileNames.clear()
             for k in ListWidget2SelectedItems:
                 self.ListWidget2SelectedFileNames.append(k.text())
                 print(k.text())
@@ -231,19 +245,66 @@ class Ui_MainWindow(object):
                 print(self.outputZipFileName)
                 for file in self.ListWidget2SelectedFileNames:
                     print("Ziplenecek:"+file)
-                    if os.path.isdir(self.activeWay+'/'+file):
+                    if os.path.isdir(self.activeWay+'/'+self.treeWidget.currentItem().text(0)+'/'+file):
                         print ("Yazdırılacak bir dizindir.")
-                        shutil.copytree(self.activeWay+'/'+file,self.outputZipFileWay+'/'+self.outputZipFileName+"/"+file)
+                        shutil.copytree(self.activeWay+'/'+self.treeWidget.currentItem().text(0)+'/'+file,self.outputZipFileWay+'/'+self.outputZipFileName+"/"+file)
                     else:
                         print ("Yazdırılacak bir dosyadır.")
-                        shutil.copy(self.activeWay+'/'+file,self.outputZipFileWay+'/'+self.outputZipFileName+'/'+file)
+
+                        shutil.copy(self.activeWay+'/'+self.treeWidget.currentItem().text(0)+'/'+file,self.outputZipFileWay+'/'+self.outputZipFileName+'/'+file)
                 print("Ziplenecek klasör ve içeriği hazır...")
                 print("Sıkıştırma başlıyor...")
                 shutil.make_archive(self.outputZipFileWay+'/'+self.outputZipFileName , self.targetZipFormat,self.outputZipFileWay+'/'+self.outputZipFileName)
                 print("Sıkıştırma tamamlandı...")
                 print("Geçici dosyalar siliniyor...")
                 shutil.rmtree(self.outputZipFileWay+'/'+self.outputZipFileName )
-        #*****************AŞAĞIDAKİ METOD SAĞ LİSTEDE İTEMLERE ÇİFT TIKLANMAI DURUMUNDA*********************
+
+    def onUnzipMenuSelected(self):
+        self.createActiveWay()
+        print('Menüden Zipten Çıkar seçildi...')
+        #En son ağaç içriğine göre aktif yolu güncelle
+        ListWidget2SelectedItems=self.listWidget2.selectedItems()
+        #print(type(seciliItems))
+        if(len(ListWidget2SelectedItems)>0):
+            print('Seçili bir şeyler var...')
+            self.ListWidget2SelectedFileNames.clear()
+            for k in ListWidget2SelectedItems:
+                self.ListWidget2SelectedFileNames.append(k.text())
+                print(k.text())
+
+            self.outputZipFileWay = str(QFileDialog.getExistingDirectory(self.centralwidget, "Çıkış için konum seçiniz"))
+            if os.path.isdir(self.outputZipFileWay):
+                print('Seçilen yol geçerlidir....:',self.outputZipFileWay)
+                self.showDialog2()
+            else:
+                print('Çıkış yolu geçersiz...')
+        else:
+            print('Seçili item bulunmadı')
+
+    def showDialog2(self):
+        self.outputZipFileName, ok = QtWidgets.QInputDialog.getText(self.centralwidget, 'Çıkış dosya adı',  'Dosya adı giriniz:')
+        print("is dir sonucu:"+str(os.path.isdir(self.outputZipFileWay+'/'+self.outputZipFileName)))
+        if not os.path.isdir(self.outputZipFileWay+'/'+self.outputZipFileName):
+            os.mkdir(self.outputZipFileWay+'/'+self.outputZipFileName)
+            print('Dizin olmadığında oluşturuldu')
+
+        if ok:
+            selectionList = ['zip', 'tar', 'gztar', 'bztar']
+            for file in self.ListWidget2SelectedFileNames:
+                print("Seçli dosya:"+file)
+                print("Seçli uzantı:"+file[(len(file)-3):(len(file))])
+                if selectionList.__contains__(file[(len(file)-3):(len(file))]):
+                    print ("Dosya arşiv  dosyasıdır...")
+                    zipFormat=file[(len(file)-3):(len(file))]
+                    shutil.unpack_archive(self.activeWay+'/'+self.treeWidget.currentItem().text(0)+'/'+file,self.outputZipFileWay+'/'+self.outputZipFileName,zipFormat)
+                    print ("Dosya arşiv çıkarıldı...")
+                else:
+                    print ("Seçili öğe bir arşiv dosyası deği.")
+
+
+#HENÜZ KULLANILMAYAN METODLAR
+
+#*****************AŞAĞIDAKİ METOD SAĞ LİSTEDE İTEMLERE ÇİFT TIKLANMAI DURUMUNDA*********************
     def onRightClick(self):
         print('Liste 2 ye çift tıklandı...')
 
