@@ -44,7 +44,7 @@ class Ui_MainWindow(object):
         self.activeWayFolderList=[]
         self.activeWayFolderList.append(self.diskList.__getitem__(0))
         self.activeWay=self.diskList.__getitem__(0)
-        self.outputZipFileWay=os.getcwd()        #Varsayılan çıkı olarak aktif dizini ata
+        self.outputFileWay=os.getcwd()        #Varsayılan çıkı olarak aktif dizini ata
         self.outputZipFileName='MyZippedFile'#Varsayılan çıkı dosya adı
         self.ListWidget2SelectedFileNames=[]#Dizinden seçielen dosyaların listesi
         self.targetZipFormat='zip'#Varsayılan çıkış dosya formatı
@@ -78,17 +78,23 @@ class Ui_MainWindow(object):
 
         self.actionSeciliDosyalariCikar= QtWidgets.QAction(MainWindow)
         self.actionSeciliDosyalariCikar.setObjectName("actionSeciliDosyalariCikar")
-        self.actionSe_ili_Dosyalar_S_k_t_r_ve_ifrele = QtWidgets.QAction(MainWindow)
-        self.actionSe_ili_Dosyalar_S_k_t_r_ve_ifrele.setObjectName("actionSe_ili_Dosyalar_S_k_t_r_ve_ifrele")
+        self.cryptSelectedFiles = QtWidgets.QAction(MainWindow)
+        self.cryptSelectedFiles.setObjectName("cryptSelectedFiles")
+        self.deCryptSelectedFiles = QtWidgets.QAction(MainWindow)
+        self.deCryptSelectedFiles.setObjectName("deCryptSelectedFiles")
 
 
         self.menuDosya.addAction(self.actionSe_ili_Dosyalar_S_k_t_r)
         self.menuDosya.addAction(self.actionSeciliDosyalariCikar)
-        self.menuDosya.addAction(self.actionSe_ili_Dosyalar_S_k_t_r_ve_ifrele)
+        self.menuDosya.addAction(self.cryptSelectedFiles)
+        self.menuDosya.addAction(self.deCryptSelectedFiles)
 
 
         self.actionSe_ili_Dosyalar_S_k_t_r.triggered.connect(self.onZipMenuSelected)
         self.actionSeciliDosyalariCikar.triggered.connect(self.onUnzipMenuSelected)
+        self.cryptSelectedFiles.triggered.connect(self.onCryptMenuSelected)
+        self.deCryptSelectedFiles.triggered.connect(self.onDecryptMenuSelected)
+
         self.menubar.addAction(self.menuDosya.menuAction())
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -104,7 +110,8 @@ class Ui_MainWindow(object):
         self.menuDosya.setTitle(_translate("MainWindow", "Dosya"))
         self.actionSe_ili_Dosyalar_S_k_t_r.setText(_translate("MainWindow", "Seçili Dosyaları Sıkıştır"))
         self.actionSeciliDosyalariCikar.setText(_translate("MainWindow", "Seçili Dosyaları Çıkar"))
-        self.actionSe_ili_Dosyalar_S_k_t_r_ve_ifrele.setText(_translate("MainWindow", "Seçili Dosyaları Sıkıştır ve Şifrele"))
+        self.cryptSelectedFiles.setText(_translate("MainWindow", "Seçili Dosyaları Şifrele"))
+        self.deCryptSelectedFiles.setText(_translate("MainWindow", "Şifreli Dosyayı Çöz"))
     #Bilgisayardaki disk adlarını(mouth) bir listede tutar
     def setDiskList(self):
         self.diskList=[]
@@ -221,18 +228,18 @@ class Ui_MainWindow(object):
                 self.ListWidget2SelectedFileNames.append(k.text())
                 print(k.text())
 
-            self.outputZipFileWay = str(QFileDialog.getExistingDirectory(self.centralwidget, "Çıkış dosyası için konum seçiniz"))
-            if os.path.isdir(self.outputZipFileWay):
-                print('Seçilen yol geçerlidir....:',self.outputZipFileWay)
+            self.outputFileWay = str(QFileDialog.getExistingDirectory(self.centralwidget, "Çıkış dosyası için konum seçiniz"))
+            if os.path.isdir(self.outputFileWay):
+                print('Seçilen yol geçerlidir....:',self.outputFileWay)
                 self.showDialog()
         else:
             print('Seçili item bulunmadı')
 
     def showDialog(self):
         self.outputZipFileName, ok = QtWidgets.QInputDialog.getText(self.centralwidget, 'Çıkış dosya adı',  'Dosya adı giriniz:')
-        print("is dir sonucu:"+str(os.path.isdir(self.outputZipFileWay+'/'+self.outputZipFileName)))
-        if not os.path.isdir(self.outputZipFileWay+'/'+self.outputZipFileName):
-            os.mkdir(self.outputZipFileWay+'/'+self.outputZipFileName)
+        print("is dir sonucu:"+str(os.path.isdir(self.outputFileWay+'/'+self.outputZipFileName)))
+        if not os.path.isdir(self.outputFileWay+'/'+self.outputZipFileName):
+            os.mkdir(self.outputFileWay+'/'+self.outputZipFileName)
             print('Dizin olmadığında oluşturuldu')
 
         if ok:
@@ -247,17 +254,17 @@ class Ui_MainWindow(object):
                     print("Ziplenecek:"+file)
                     if os.path.isdir(self.activeWay+'/'+self.treeWidget.currentItem().text(0)+'/'+file):
                         print ("Yazdırılacak bir dizindir.")
-                        shutil.copytree(self.activeWay+'/'+self.treeWidget.currentItem().text(0)+'/'+file,self.outputZipFileWay+'/'+self.outputZipFileName+"/"+file)
+                        shutil.copytree(self.activeWay+'/'+self.treeWidget.currentItem().text(0)+'/'+file,self.outputFileWay+'/'+self.outputZipFileName+"/"+file)
                     else:
                         print ("Yazdırılacak bir dosyadır.")
 
-                        shutil.copy(self.activeWay+'/'+self.treeWidget.currentItem().text(0)+'/'+file,self.outputZipFileWay+'/'+self.outputZipFileName+'/'+file)
+                        shutil.copy(self.activeWay+'/'+self.treeWidget.currentItem().text(0)+'/'+file,self.outputFileWay+'/'+self.outputZipFileName+'/'+file)
                 print("Ziplenecek klasör ve içeriği hazır...")
                 print("Sıkıştırma başlıyor...")
-                shutil.make_archive(self.outputZipFileWay+'/'+self.outputZipFileName , self.targetZipFormat,self.outputZipFileWay+'/'+self.outputZipFileName)
+                shutil.make_archive(self.outputFileWay+'/'+self.outputZipFileName , self.targetZipFormat,self.outputFileWay+'/'+self.outputZipFileName)
                 print("Sıkıştırma tamamlandı...")
                 print("Geçici dosyalar siliniyor...")
-                shutil.rmtree(self.outputZipFileWay+'/'+self.outputZipFileName )
+                shutil.rmtree(self.outputFileWay+'/'+self.outputZipFileName )
 
     def onUnzipMenuSelected(self):
         self.createActiveWay()
@@ -272,9 +279,9 @@ class Ui_MainWindow(object):
                 self.ListWidget2SelectedFileNames.append(k.text())
                 print(k.text())
 
-            self.outputZipFileWay = str(QFileDialog.getExistingDirectory(self.centralwidget, "Çıkış için konum seçiniz"))
-            if os.path.isdir(self.outputZipFileWay):
-                print('Seçilen yol geçerlidir....:',self.outputZipFileWay)
+            self.outputFileWay = str(QFileDialog.getExistingDirectory(self.centralwidget, "Çıkış için konum seçiniz"))
+            if os.path.isdir(self.outputFileWay):
+                print('Seçilen yol geçerlidir....:',self.outputFileWay)
                 self.showDialog2()
             else:
                 print('Çıkış yolu geçersiz...')
@@ -283,9 +290,9 @@ class Ui_MainWindow(object):
 
     def showDialog2(self):
         self.outputZipFileName, ok = QtWidgets.QInputDialog.getText(self.centralwidget, 'Çıkış dosya adı',  'Dosya adı giriniz:')
-        print("is dir sonucu:"+str(os.path.isdir(self.outputZipFileWay+'/'+self.outputZipFileName)))
-        if not os.path.isdir(self.outputZipFileWay+'/'+self.outputZipFileName):
-            os.mkdir(self.outputZipFileWay+'/'+self.outputZipFileName)
+        print("is dir sonucu:"+str(os.path.isdir(self.outputFileWay+'/'+self.outputZipFileName)))
+        if not os.path.isdir(self.outputFileWay+'/'+self.outputZipFileName):
+            os.mkdir(self.outputFileWay+'/'+self.outputZipFileName)
             print('Dizin olmadığında oluşturuldu')
 
         if ok:
@@ -296,15 +303,56 @@ class Ui_MainWindow(object):
                 if selectionList.__contains__(file[(len(file)-3):(len(file))]):
                     print ("Dosya arşiv  dosyasıdır...")
                     zipFormat=file[(len(file)-3):(len(file))]
-                    shutil.unpack_archive(self.activeWay+'/'+self.treeWidget.currentItem().text(0)+'/'+file,self.outputZipFileWay+'/'+self.outputZipFileName,zipFormat)
+                    shutil.unpack_archive(self.activeWay+'/'+self.treeWidget.currentItem().text(0)+'/'+file,self.outputFileWay+'/'+self.outputZipFileName,zipFormat)
                     print ("Dosya arşiv çıkarıldı...")
+
+    #Menüden şifrele seçildiğinde
+    def onCryptMenuSelected(self):
+        print('Menüden şifrele seçildi...')
+        ListWidget2SelectedItems=self.listWidget2.selectedItems()
+        #print(type(seciliItems))
+        if(len(ListWidget2SelectedItems)>0):
+            print('Seçili bir şeyler var...')
+            #self.ListWidget2SelectedFileNames.clear()
+            for k in ListWidget2SelectedItems:
+                self.ListWidget2SelectedFileNames.append(k.text())
+                print(k.text())
+            print('Buraya ıulaşıldı 1...')
+            self.createActiveWay()
+            for file in self.ListWidget2SelectedFileNames:
+                if not (  ( os.path.isdir(self.activeWay+'/'+self.treeWidget.currentItem().text(0)+'/'+file)) or (str(file).endswith('.enc'))  ):
+                    print('Seçilenler dosyadaır şifrelenebilir.....')
+                    os.system('python crypt.py '+self.activeWay+'/'+self.treeWidget.currentItem().text(0)+'/'+file+'')
+        else:
+            print('Seçili item bulunmadı')
+#*************************************************************************************
+    #Menüden şifrele seçildiğinde
+    def onDecryptMenuSelected(self):
+        print('Menüden şifre çöz seçildi...')
+        ListWidget2SelectedItems=self.listWidget2.selectedItems()
+        #print(type(seciliItems))
+        if(len(ListWidget2SelectedItems)>0):
+            print('Seçili bir şeyler var...')
+            #self.ListWidget2SelectedFileNames.clear()
+            for k in ListWidget2SelectedItems:
+                self.ListWidget2SelectedFileNames.append(k.text())
+                print(k.text())
+            print('Buraya ıulaşıldı 1...')
+            self.createActiveWay()
+            for file in self.ListWidget2SelectedFileNames:
+                if (str(file).endswith('.enc')):
+                    print('Bu dosya deşifre edlebilir.....')
+                    os.system('python dcrypt.py '+self.activeWay+'/'+self.treeWidget.currentItem().text(0)+'/'+file+'')
                 else:
-                    print ("Seçili öğe bir arşiv dosyası deği.")
+                    print('Seçili dosya *.enc tipinde bir dosya değil...')
+        else:
+            print('Seçili item bulunmadı')
 
 
-#HENÜZ KULLANILMAYAN METODLAR
 
-#*****************AŞAĞIDAKİ METOD SAĞ LİSTEDE İTEMLERE ÇİFT TIKLANMAI DURUMUNDA*********************
+
+
+
+
     def onRightClick(self):
         print('Liste 2 ye çift tıklandı...')
-
