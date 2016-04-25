@@ -322,11 +322,12 @@ class Ui_MainWindow(object):
             for file in self.ListWidget2SelectedFileNames:
                 if not (  ( os.path.isdir(self.activeWay+'/'+self.treeWidget.currentItem().text(0)+'/'+file)) or (str(file).endswith('.enc'))  ):
                     print('Seçilenler dosyadaır şifrelenebilir.....')
+                    print('Şifrelene dosya ve yool:'+self.activeWay+'/'+self.treeWidget.currentItem().text(0)+'/'+file+'')
                     os.system('python crypt.py '+self.activeWay+'/'+self.treeWidget.currentItem().text(0)+'/'+file+'')
         else:
             print('Seçili item bulunmadı')
 #*************************************************************************************
-    #Menüden şifrele seçildiğinde
+    #Menüden şifre çöz seçildiğinde
     def onDecryptMenuSelected(self):
         print('Menüden şifre çöz seçildi...')
         ListWidget2SelectedItems=self.listWidget2.selectedItems()

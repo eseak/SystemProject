@@ -26,6 +26,11 @@ def decrypt_file(key, in_filename, out_filename=None, chunksize=24*1024):
                 outfile.write(decryptor.decrypt(chunk))
 
             outfile.truncate(origsize)
-inputFileName=sys.argv[1]
-#print('Decryption işlemine girildi....')
+inputFileName=''
+for k in range(1, len(sys.argv)):
+    if (k==(len(sys.argv)-1)):
+        inputFileName=inputFileName+sys.argv[k]
+    else:
+        inputFileName=inputFileName=sys.argv[1]+' '+sys.argv[k]
+print(inputFileName, 'adlı dosya deşifre edlecek')
 decrypt_file('1234567891234567',inputFileName, out_filename=None, chunksize=64*1024)

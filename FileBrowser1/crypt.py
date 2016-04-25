@@ -43,7 +43,11 @@ def encrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
                     chunk += ' ' * (16 - len(chunk) % 16)
 
                 outfile.write(encryptor.encrypt(chunk))
-inputFileName=sys.argv[1]
-print(sys.argv[1])
-print ('ggggggggggg:',os.getcwd())
+inputFileName=''
+for k in range(1, len(sys.argv)):
+    if (k==(len(sys.argv)-1)):
+        inputFileName=inputFileName+sys.argv[k]
+    else:
+        inputFileName=inputFileName=sys.argv[1]+' '+sys.argv[k]
+print (inputFileName,' adlı dosya şifrelenecek')
 encrypt_file('1234567891234567',inputFileName, out_filename=None, chunksize=64*1024)
